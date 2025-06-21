@@ -35,7 +35,7 @@ async function main() {
     }
 
     console.log("sender ", sender)
-    
+
     const code = await hre.ethers.provider.getCode(sender);
     if (code !== "0x") {
         initCode = "0x";
@@ -52,21 +52,27 @@ async function main() {
         callGasLimit:400_000,
         verificationGasLimit: 400_000,
         preVerificationGas: 100_000,
-        maxFeePerGas: hre.ethers.parseEther("30","gwei"),
-        maxPriorityFeePerGas: hre.ethers.parseEther("30","gwei"),
+        maxFeePerGas: hre.ethers.parseUnits("30","gwei"),
+        maxPriorityFeePerGas: hre.ethers.parseUnits("30","gwei"),
         paymasterAndData: "0x",
         signature: "0x",
         
 
     }
-    console.log(userOp)
+    // console.log(userOp)
 
-    const userOpHash = await EntryPoint.getUserOpHash(userOp)
-    console.log(userOp)
+    const userOpHash = await EntryPoint.getUserOpHash(userOp);
 
-    userOp.signature = signer.signMessage(hre.ethers.getBytes(userOpHash))
+    const signature = await signer.signMessage(hre.ethers.getBytes(userOpHash));
+    userOp.signature = signature;
+
     const txhash = await EntryPoint.handleOps([userOp], addr1);
-    console.log("tx ",txhash)
+    console.log("tx hash: ",txhash)
+
+    const deployedAccount = await hre.ethers.getContractAt("Account", sender);
+
+    const count = await deployedAccount.count();
+    console.log("Count in Acoount: ", count.toString());
 
 }
 main().catch((error) => {
